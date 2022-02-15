@@ -6,56 +6,57 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
-x = []
+x = np.linspace(0, 1.5, 100)
 y = []
-with open('data45.csv', newline='') as csvfile:
-    data = csv.reader(csvfile, delimiter=' ', quotechar='|')
-    count = 0
-    for row in data:
-        [xx, yy] = row[0].split(",")
-        # print("xx,yy", xx, yy)
-        count += 1
-        if count % 1 == 0:
-            x.append(float(xx))
-            y.append(float(yy))
+# with open('data45.csv', newline='') as csvfile:
+#     data = csv.reader(csvfile, delimiter=' ', quotechar='|')
+#     count = 0
+#     for row in data:
+#         [xx, yy] = row[0].split(",")
+#         # print("xx,yy", xx, yy)
+#         count += 1
+#         if count % 1 == 0:
+#             x.append(float(xx))
+#             y.append(float(yy))
 
+# def SortInput(Xin, Yin):
+#     XTemp = Xin.copy()
+#     XTemp.sort()
+#     Xout = XTemp
+#     Yout = []
+#     for x in Xout:
+#         index = Xin.index(x)
+#         Yout.append(Yin[index])
+#     return Xout, Yout
 
-def SortInput(Xin, Yin):
-    XTemp = Xin.copy()
-    XTemp.sort()
-    Xout = XTemp
-    Yout = []
-    for x in Xout:
-        index = Xin.index(x)
-        Yout.append(Yin[index])
-    return Xout, Yout
-
-
-x, y = SortInput(x, y)
-tck = interpolate.splrep(x, y, s=0, k=4)
-xnew = 0.1
-ynew = interpolate.splev(xnew, tck, der=0)
-dydx = interpolate.splev(xnew, tck, der=1)
+# x, y = SortInput(x, y)
+# tck = interpolate.splrep(x, y, s=0, k=3)
+# xnew = 0.1
+# ynew = interpolate.splev(xnew, tck, der=0)
+# dydx = interpolate.splev(xnew, tck, der=1)
 # print("tck:", func)
-
-cs = interpolate.Akima1DInterpolator(x, y)
 
 
 def function(xIn):
-    y = interpolate.splev(xIn, tck, der=0)
-    # y = cs(xIn)
+    if xIn <= 1:
+        y = 2 * xIn**3 - 9 * xIn**2 + 8 * xIn + 1
+    else:
+        y = -3 * xIn**2 + 2 * xIn + 3
     return y
 
 
+# def dydx0(xIn):
+#     dydx = interpolate.splev(xIn, tck, der=1)
+#     return dydx
+
+
 def dydx(xIn):
-    dydx = interpolate.splev(xIn, tck, der=1)
-    return dydx
-
-
-def dydx0(xIn):
-    h = 0.000001
-    x_l = xIn 
-    x_r = xIn + h
+    if xIn == 0:
+        dx = 0.000001
+    else:
+        dx = xIn * 0.000002
+    x_l = xIn - dx / 2
+    x_r = xIn + dx / 2
     y_l = function(x_l)
     y_r = function(x_r)
     dx = x_r - x_l
@@ -64,15 +65,18 @@ def dydx0(xIn):
     return dydx
 
 
+# def d2ydx20(xIn):
+#     d2ydx2 = interpolate.splev(xIn, tck, der=2)
+#     return d2ydx2
+
+
 def d2ydx2(xIn):
-    d2ydx2 = interpolate.splev(xIn, tck, der=2)
-    return d2ydx2
-
-
-def d2ydx20(xIn):
-    h = 0.0000001
-    x_l = xIn 
-    x_r = xIn +h
+    if xIn == 0:
+        dx = 0.000001
+    else:
+        dx = xIn * 0.000002
+    x_l = xIn - dx / 2
+    x_r = xIn + dx / 2
     y_l = dydx(x_l)
     y_r = dydx(x_r)
     dx = x_r - x_l
@@ -81,19 +85,7 @@ def d2ydx20(xIn):
     return d2ydx2
 
 
-def d2ydx21(xIn):
-    h = 0.001
-    x_m = xIn
-    x_l = xIn - h
-    x_r = xIn + h
-    y_m = function(x_m)
-    y_l = function(x_l)
-    y_r = function(x_r)
-    d2ydx2 = (y_r + y_l - 2 * y_m) / h**2
-    return d2ydx2
-
-
-xintpl = np.linspace(x[0], x[-1], 500)
+xintpl = np.linspace(x[0], x[-1], 200)
 yintpl = []
 for xIn in xintpl:
     yintpl.append(function(xIn))
@@ -105,12 +97,7 @@ for xIn in xintpl:
 
 d2yLst = []
 for xIn in xintpl:
-    d2yLst.append(d2ydx2(x))
-
-with open('der2.csv','w', newline='') as csvfile:
-    der2 = csv.writer(csvfile, delimiter=',', quotechar='|')
-    for i in range(len(xintpl)):
-        der2.writerow([xintpl[i],interpolate.splev(xintpl[i], tck, der=2)])
+    d2yLst.append(dydx(dydx(xIn)))
 
 curvature = []
 for xIn in xintpl:
@@ -149,7 +136,6 @@ ax2.tick_params(axis='y', labelcolor=color)
 for x in xintpl:
     ax2.plot(x, dydx(x), "d", color=color)
     ax2.plot(x, d2ydx2(x), "s", color=color)
-    # ax2.plot(x, interpolate.splev(x, tck, der=3), "s", color=color)
     ax2.tick_params(axis='y', labelcolor=color)
 
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
