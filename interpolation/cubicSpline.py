@@ -32,7 +32,7 @@ def SortInput(Xin, Yin):
 
 
 x, y = SortInput(x, y)
-tck = interpolate.splrep(x, y, s=0, k=4)
+tck = interpolate.splrep(x, y, s=0, k=5)
 xnew = 0.1
 ynew = interpolate.splev(xnew, tck, der=0)
 dydx = interpolate.splev(xnew, tck, der=1)
@@ -70,7 +70,7 @@ def d2ydx2(xIn):
 
 
 def d2ydx20(xIn):
-    h = 0.0000001
+    h = 0.000001
     x_l = xIn 
     x_r = xIn +h
     y_l = dydx(x_l)
@@ -93,7 +93,7 @@ def d2ydx21(xIn):
     return d2ydx2
 
 
-xintpl = np.linspace(x[0], x[-1], 500)
+xintpl = np.linspace(x[0], x[-1], 1000)
 yintpl = []
 for xIn in xintpl:
     yintpl.append(function(xIn))
@@ -105,7 +105,7 @@ for xIn in xintpl:
 
 d2yLst = []
 for xIn in xintpl:
-    d2yLst.append(d2ydx2(x))
+    d2yLst.append(d2ydx2(xIn))
 
 with open('der2.csv','w', newline='') as csvfile:
     der2 = csv.writer(csvfile, delimiter=',', quotechar='|')
@@ -146,11 +146,16 @@ ax2.set_ylabel('curvature', color=color)  # we already handled the x-label with 
 ax2.plot(xintpl, curvature, color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 
-for x in xintpl:
-    ax2.plot(x, dydx(x), "d", color=color)
-    ax2.plot(x, d2ydx2(x), "s", color=color)
-    # ax2.plot(x, interpolate.splev(x, tck, der=3), "s", color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
+ax2.set_ylabel('dyLst', color=color)  # we already handled the x-label with ax1
+ax2.plot(xintpl, dyLst, color=color)
+ax2.set_ylabel('d2yLst', color=color)  # we already handled the x-label with ax1
+ax2.plot(xintpl, d2yLst, color='tab:green')
+
+# for x in xintpl:
+#     ax2.plot(x, dydx(x), "d", color=color)
+#     ax2.plot(x, d2ydx2(x), "s", color=color)
+#     # ax2.plot(x, interpolate.splev(x, tck, der=3), "s", color=color)
+#     ax2.tick_params(axis='y', labelcolor=color)
 
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.show()
