@@ -1,16 +1,12 @@
 import csv
-from itertools import count
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate
 
 
-def ReadDataFile(fileName):
-    s0 = []
-    u1 = []
-    u2 = []
-    u3 = []
+def ReadDataFile(fileName, interval=1):
+    s0, u1, u2, u3 = [], [], [], []
     with open(fileName, newline='') as csvfile:
         data = csv.reader(csvfile, delimiter=' ', quotechar='|')
         count = 0
@@ -18,7 +14,7 @@ def ReadDataFile(fileName):
             lineTmp = row[0].split(",")
             # print("xx,yy", xx, yy)
             count += 1
-            if count % 1 == 0:
+            if count % interval == 0:
                 s0.append(float(lineTmp[0]))
                 u1.append(float(lineTmp[1]))
                 u2.append(float(lineTmp[2]))
@@ -33,6 +29,36 @@ def CalcCurveXYZCoodinate(s0, u1, u2, u3):
         XYZTmp.append(u1[i])
         XYZTmp.append(u2[i])
         XYZTmp.append(u3[i] + s0[i])
+        XYZtoReturn.append(XYZTmp)
+    return XYZtoReturn
+
+
+def ReadDataFile_6Columns(fileName, gap=1):
+    u1, u2, u3, dx, dy, dz = [], [], [], [], [], []
+    with open(fileName, newline='') as csvfile:
+        data = csv.reader(csvfile, delimiter=' ', quotechar='|')
+        count = 0
+        for row in data:
+            lineTmp = row[0].split(",")
+            # print("xx,yy", xx, yy)
+            count += 1
+            if count % gap == 0:
+                u1.append(float(lineTmp[0]))
+                u2.append(float(lineTmp[1]))
+                u3.append(float(lineTmp[2]))
+                dx.append(float(lineTmp[3]))
+                dy.append(float(lineTmp[4]))
+                dz.append(float(lineTmp[5]))
+    return u1, u2, u3, dx, dy, dz
+
+
+def CalcCurveXYZCoodinate_6Columns(u1, u2, u3, dx, dy, dz):
+    XYZtoReturn = []
+    for i in range(len(u1)):
+        XYZTmp = []
+        XYZTmp.append(u1[i] + dx[i])
+        XYZTmp.append(u2[i] + dy[i])
+        XYZTmp.append(u3[i] + dz[i])
         XYZtoReturn.append(XYZTmp)
     return XYZtoReturn
 
@@ -164,8 +190,11 @@ def CalcCurveTNB(s, x, y, z):
 
 if __name__ == "__main__":
 
-    [s0, u1, u2, u3] = ReadDataFile('data-helix.csv')
-    curveXYZ = CalcCurveXYZCoodinate(s0, u1, u2, u3)
+    # [s0, u1, u2, u3] = ReadDataFile('data6.csv', 4)
+    # curveXYZ = CalcCurveXYZCoodinate(s0, u1, u2, u3)
+
+    [u1, u2, u3, dx, dy, dz] = ReadDataFile_6Columns('data9-circle.csv', 80)
+    curveXYZ = CalcCurveXYZCoodinate_6Columns(u1, u2, u3, dx, dy, dz)
 
     curve = np.array(curveXYZ)
 
